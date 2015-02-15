@@ -1,14 +1,10 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 Read the activity.csv file
-```{r READ CSV}
+
+```r
 activity <- read.csv("activity.csv")
 ```
 
@@ -21,48 +17,91 @@ the dataset.
 1. Make a histogram of the total number of steps taken each day
 
 First aggregate total number of steps taken per day and remove missing values
-```{r total number of steps taken per day, echo=TRUE}
+
+```r
 bydate <- aggregate(activity$steps, by=list(activity$date), FUN=sum)
 names(bydate)
+```
+
+```
+## [1] "Group.1" "x"
+```
+
+```r
 bydate$x <- as.numeric(bydate$x)
 bydate <- na.omit(bydate)
 ```
 Plot a histogram of the total number of steps taken per day
-```{r histogram_bydate, fig.height=4,echo=TRUE}
+
+```r
 hist(bydate$x, breaks=(by=10), xlab="Number of Steps", ylab="Days", main="Histogram of number of steps taken per day")
 ```
+
+![](PA1_template_files/figure-html/histogram_bydate-1.png) 
 
 
 2. Calculate and report the **mean** and **median** total number of steps taken per day
 
-```{r mean using bydate, echo=TRUE}
+
+```r
 meanSteps <- mean(bydate$x)
 meanSteps
 ```
-```{r median using bydate, echo=TRUE}
+
+```
+## [1] 10766.19
+```
+
+```r
 medianSteps <- median(bydate$x)
 medianSteps
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 1. Make a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-```{r time_series_plot, echo=TRUE}
+
+```r
 activity_withoutNA <- na.omit(activity)
 avgInt <- aggregate(activity_withoutNA$steps, by=list(activity_withoutNA$interval), FUN=mean)
 names(avgInt)
+```
+
+```
+## [1] "Group.1" "x"
+```
+
+```r
 plot(avgInt$Group.1, avgInt$x, type="l", xlab="5-minute interval", ylab="average steps taken across all days", main="Average daily activity pattern")
 ```
+
+![](PA1_template_files/figure-html/time_series_plot-1.png) 
 
 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 Print row corresponding to the max and also extract the 5 minute interval for the max
-```{r, echo=TRUE}
+
+```r
 # print max and the corresponding 5 minute interval
 avgInt[avgInt$x == max(avgInt$x),]
+```
 
+```
+##     Group.1        x
+## 104     835 206.1698
+```
+
+```r
 # extract the 5 minute interval for the max
 avgInt[avgInt$x == max(avgInt$x),1]
+```
+
+```
+## [1] 835
 ```
 
 
@@ -73,15 +112,21 @@ bias into some calculations or summaries of the data.
 
 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NA`s)
 
-```{r, echo=TRUE}
+
+```r
 numNA <- is.na(activity$steps)
 sum(numNA)
+```
+
+```
+## [1] 2304
 ```
 
 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
 Strategy used: For each missing value replace with the mean for that 5-minute interval and round it to the nearest integer.
-```{r, echo=TRUE}
+
+```r
 #copy activity to a new data frame act
 fixedAct <- activity
 
@@ -109,7 +154,8 @@ missingValues <- avgInt[missingIndices,2]
 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 fixedAct is the new dataset created with the imputed values.
-``` {r, echo=TRUE}
+
+```r
 #copy the missing values to replace the NA's for the missing indices in fixedAct
 #round the average to nearest integer
 fixedAct$steps[isNA] <- round(missingValues) 
@@ -118,8 +164,8 @@ fixedAct$steps[isNA] <- round(missingValues)
 
 4. Make a histogram of the total number of steps taken each day and Calculate and report the **mean** and **median** total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-```{r histogram_plot_fixedAct, echo=TRUE}
 
+```r
 # calculate total number of steps taken each day from the fixedAct
 totalSteps <- aggregate(fixedAct$steps, by=list(fixedAct$date), FUN=sum)
 
@@ -127,21 +173,44 @@ totalSteps <- aggregate(fixedAct$steps, by=list(fixedAct$date), FUN=sum)
 hist(totalSteps$x, breaks=(by=10), xlab="Number of Steps", ylab="Days", main="Histogram of total number of steps taken per day")
 ```
 
+![](PA1_template_files/figure-html/histogram_plot_fixedAct-1.png) 
+
 Displaying the imputed mean and median
-```{r mean using totalSteps, echo=TRUE}
+
+```r
 imputedMean <- mean(totalSteps$x)
 imputedMean
 ```
-```{r median using totalSteps, echo=TRUE}
+
+```
+## [1] 10765.64
+```
+
+```r
 imputedMedian <- median(totalSteps$x)
 imputedMedian
 ```
 
-Displaying the change in the mean and median values.
-```{r display change in mean and median, echo=TRUE}
-imputedMean - meanSteps
+```
+## [1] 10762
+```
 
+Displaying the change in the mean and median values.
+
+```r
+imputedMean - meanSteps
+```
+
+```
+## [1] -0.549335
+```
+
+```r
 imputedMedian - medianSteps
+```
+
+```
+## [1] -3
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -150,8 +219,8 @@ the dataset with the filled-in missing values for this part.
 
 1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
-```{r, echo=TRUE}
 
+```r
 #convert date column from factor type to date type
 fixedAct$date <- as.Date(fixedAct$date)
 
@@ -164,22 +233,23 @@ fixedAct$wd <- ifelse(fixedAct$wd %in% c("Saturday","Sunday"),"weekend","weekday
 
 Extract and calculate the average number of steps taken across all weekday and all weekends.
 
-```{r weekend data, echo=TRUE}
 
+```r
 # extract weekend data
 weekend_Act <- fixedAct[fixedAct$wd=="weekend",]
 avgInt_weekend <- aggregate(weekend_Act$steps, by=list(weekend_Act$interval), FUN=mean)
 ```
 
-```{r weekday data, echo=TRUE}
+
+```r
 # extract weekday data
 weekday_Act <- fixedAct[fixedAct$wd=="weekday",]
 avgInt_weekday <- aggregate(weekday_Act$steps, by=list(weekday_Act$interval), FUN=mean)
 ```
 
 Combine the averages using rbind and using ggplot make a lattice plot.
-```{r ggplot_lattice, echo=TRUE}
 
+```r
 #combine the averages using rbind
 avgInt_weekend$wd <- "weekend"
 avgInt_weekday$wd <- "weekday"
@@ -190,5 +260,6 @@ library(ggplot2)
 g <- ggplot(avgWD, aes(x=Group.1,y=x)) + geom_line()
 # arrange grid in vertical direction
 g + facet_wrap(~wd, ncol=1) + labs(x="Interval") + labs(y="Number of steps")
-
 ```
+
+![](PA1_template_files/figure-html/ggplot_lattice-1.png) 
